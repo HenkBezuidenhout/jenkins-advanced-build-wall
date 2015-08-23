@@ -1,0 +1,136 @@
+<link rel="import" href="/bower_components/polymer/polymer.html">
+
+<dom-module id="job-cube">
+  <link rel='stylesheet' href='job-cube.css'>
+
+  <template>
+    <div id='cube' status$='{{status}}' show$='{{show}}'>
+      <div class='face front'>
+        <div class='big-name'>[[info.displayName]]</div>
+        <div>          
+          <template is="dom-repeat" items$="[[info.healthReport]]">
+              <span>[[item.description]]</span>
+          </template>
+        </div>
+        <div class='build-number'>
+          <span>#</span>
+          <span>[[info.lastBuild.number]]</span>                   
+        </div>
+      </div>
+      <div class='face back'>
+        <div class='name'>[[info.displayName]]</div>
+        Back
+      </div>
+      <div class='face left'>
+        <div class='name'>[[info.displayName]]</div>
+        Left
+      </div>
+      <div class='face right'>
+        <div class='name'>[[info.displayName]]</div>
+        Right
+      </div>
+      <div class='face top'>
+        <div class='name'>[[info.displayName]]</div>
+        Top
+      </div>
+      <div class='face bottom'>
+        <div class='name'>[[info.displayName]]</div>
+        Bottom
+      </div>
+    </div>
+    <iron-ajax id='job_info'       
+      url='/job_info' 
+      handle-as="json" 
+      on-response="handleJobDetailResponse" 
+      debounce-duration="300">
+    </iron-ajax>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'job-cube',
+      
+      // Properties
+      properties: {
+        status: {
+          type: String,      
+          value: 'red',
+          reflectToAttribute: true,
+          notify: true,          
+          observer: '_observeStatusChange'
+        },
+        show: {
+          type: String,   
+          value: 'front'
+        },
+        name: {
+          type: String,
+          value:  'hi!',        
+          reflectToAttribute: true  
+        },
+        url: {
+          type: String,
+          value:  '',        
+          reflectToAttribute: true  
+        },
+        info: {
+          type: Object,
+          value: {}
+        }        
+      },
+      buildHealth: function(){
+        var i;
+        if(this.info !== null){
+          return "Loading";
+        }
+        
+        var healthReport = this.info.healthReport;
+        for(i = 0; i < healthReport.length; i++){
+          return healthReport.description;
+        }
+      },
+      cycle: null,
+      ready: function(){
+        var that = this;
+        var job_info_ajax = this.$.job_info;
+        job_info_ajax.params = {name: this.name};
+        job_info_ajax.generateRequest();
+        this.cycle = function(){
+          var newShow = 'back';
+          if(!that.status.endsWith('anime')){
+            switch(that.show){
+              case "front":
+                newShow = 'bottom';
+              break;
+              case "bottom":
+                newShow = 'front';
+              break;
+              case "top":
+                newShow = 'left';
+              break;            
+              case "left":
+                newShow = 'right';
+              break;            
+              case "right":
+                newShow = 'front';
+              break;
+            }
+          }
+          that.show = newShow;
+          job_info_ajax.generateRequest();
+        };
+        
+       // setInterval(this.cycle, 2000);
+      },
+      _observeStatusChange: function(newStatus, oldStatus){
+        if(this.cycle !== null)        
+          this.cycle();
+      },
+      // Functions
+      handleJobDetailResponse: function(e) {        
+        this.info = e.detail.response;      
+        setTimeout(this.cycle, 3000);  
+      }
+    });
+  </script>
+</dom-module>
