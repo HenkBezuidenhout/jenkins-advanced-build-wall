@@ -14,7 +14,6 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.13.3",
-    "jade": "^1.11.0",
     "jenkins-api": "^0.2.8",
     "less": "^2.5.1",
     "less-middleware": "^2.0.1"
