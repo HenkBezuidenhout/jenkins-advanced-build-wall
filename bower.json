@@ -1,0 +1,26 @@
+{
+  "name": "jenkins-advanced-build-wall",
+  "main": "index.js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/HenkBezuidenhout/jenkins-advanced-build-wall",
+  "authors": [
+    "HenkBezuidenhout <henkbezuidenhout@gmail.com>"
+  ],
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#1.0.0",
+    "bootstrap": "~3.3.5",
+    "iron-ajax": "PolymerElements/iron-ajax#~1.0.4",
+    "byutv-jsonp": "~1.2.0"
+  }
+}
