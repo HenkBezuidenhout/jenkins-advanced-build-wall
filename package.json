@@ -1,0 +1,22 @@
+{
+  "name": "jenkins-advanced-build-wall",
+  "version": "1.0.0",
+  "description": "A modern, really really good looking build display wall for Jenkins CI...",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HenkBezuidenhout/jenkins-advanced-build-wall.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.3",
+    "jade": "^1.11.0",
+    "jenkins-api": "^0.2.8",
+    "less": "^2.5.1",
+    "less-middleware": "^2.0.1"
+  }
+}
