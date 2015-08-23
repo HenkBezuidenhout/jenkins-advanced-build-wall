@@ -1,0 +1,66 @@
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/poly/job-cube/job-cube.html">
+
+<dom-module id="job-board">
+  
+  <link rel='stylesheet' href='job-board.css'>
+
+  <template>
+    <iron-ajax id='all_jobs_ajax' 
+      auto
+      url='/all_jobs' 
+      handle-as="json" 
+      on-response="handleAllJobsResponse" 
+      debounce-duration="300">
+    </iron-ajax>
+    <template is="dom-repeat" items$="[[jobs]]">
+        <job-cube 
+          name$='{{item.name}}' 
+          status$='{{item.color}}'>
+        </job-cube>
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'job-board',
+      
+      // Properties
+      properties: {
+        jobs: {
+          type: Array,      
+          value: [],
+          reflectToAttribute: true
+        }
+      },
+      
+      handleAllJobsResponse: function(e) {
+        var i;
+        var newJobs = e.detail.response;
+        for (i = 0; i < newJobs.length; ++i) {
+          var j = newJobs[i];
+          var cube = $(this).children("job-cube[name='" + j.name + "']");
+          if(cube.length > 0){
+            cube = cube[0];
+            cube.status = j.color;
+            cube.url = j.url;
+          } else {
+            this.jobs = newJobs;
+            break;
+          }
+        }    
+      },
+      
+      // Functions      
+      ready: function(){
+        setInterval(function(){
+          all_jobs_ajax.generateRequest();
+          
+          
+        }, 10000);
+      }
+      
+    });
+  </script>
+</dom-module>
