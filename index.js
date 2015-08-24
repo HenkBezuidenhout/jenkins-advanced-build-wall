@@ -38,6 +38,14 @@ _express.get('/job_info', function (req, res) {
 	});	
 });
 
+_express.get('/last_build_report', function (req, res) {	
+	console.log(req.query);
+	_jenkins.last_build_report(req.query.name, function(err, data) {
+    	if (err){ return console.log(err); }		
+		res.json(data);
+	});	
+});
+
 var server = _express.listen(3000, function () {
 	var host = server.address().address;
 	var port = server.address().port;

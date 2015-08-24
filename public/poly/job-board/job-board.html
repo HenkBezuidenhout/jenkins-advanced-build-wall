@@ -54,8 +54,9 @@
       
       // Functions      
       ready: function(){
+        var that = this;
         setInterval(function(){
-          all_jobs_ajax.generateRequest();
+          that.$.all_jobs_ajax.generateRequest();
           
           
         }, 10000);

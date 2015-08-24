@@ -16,6 +16,7 @@
           <span>#</span>
           <span>[[info.lastBuild.number]]</span>                   
         </div>
+        <div class='timestamp'>[[lastBuildDate]]</div>
       </div>
       <div class='face back'>
         <div class='name'>[[info.displayName]]</div>
@@ -25,23 +26,33 @@
         <div class='name'>[[info.displayName]]</div>
         Left
       </div>
-      <div class='face right'>
+      <div class='face right'>        
+        <div class='big-name'>Building</div>
         <div class='name'>[[info.displayName]]</div>
-        Right
+        <div class='build-progress'>
+          <span>[[report.executor.progress]]</span>    
+          <span>%</span>
+        </div>        
       </div>
       <div class='face top'>
         <div class='name'>[[info.displayName]]</div>
-        Top
       </div>
       <div class='face bottom'>
+        <div>Last commit from:</div>
+        <div class='big-name'>[[culprit]]</div>
         <div class='name'>[[info.displayName]]</div>
-        Bottom
       </div>
     </div>
     <iron-ajax id='job_info'       
       url='/job_info' 
       handle-as="json" 
-      on-response="handleJobDetailResponse" 
+      on-response="handleJobInfoResponse" 
+      debounce-duration="300">
+    </iron-ajax>
+    <iron-ajax id='last_build_report'       
+      url='/last_build_report' 
+      handle-as="json" 
+      on-response="handleLastBuildReportResponse" 
       debounce-duration="300">
     </iron-ajax>
   </template>
@@ -76,7 +87,17 @@
         info: {
           type: Object,
           value: {}
-        }        
+        },    
+        build: {
+          type: Object,
+          value: {}
+        },  
+        report: {
+          type: Object,
+          value: {}
+        },
+        culprit: String,
+        lastBuildDate: Date      
       },
       buildHealth: function(){
         var i;
@@ -90,17 +111,22 @@
         }
       },
       cycle: null,
+      oldBuildNumber: '0',
       ready: function(){
         var that = this;
         var job_info_ajax = this.$.job_info;
         job_info_ajax.params = {name: this.name};
         job_info_ajax.generateRequest();
         this.cycle = function(){
-          var newShow = 'back';
-          if(!that.status.endsWith('anime')){
+          var newShow = 'front';
+          if(that.report.building){
+            newShow = 'spin';
+          } else {
             switch(that.show){
-              case "front":
-                newShow = 'bottom';
+              case "front":              
+                if(that.report.culprits && that.report.culprits.length > 0) {
+                  newShow = 'bottom';                  
+                }
               break;
               case "bottom":
                 newShow = 'front';
@@ -127,9 +153,28 @@
           this.cycle();
       },
       // Functions
-      handleJobDetailResponse: function(e) {        
-        this.info = e.detail.response;      
+      handleJobInfoResponse: function(e) {        
+        this.info = e.detail.response;       
+        
+        var last_build_report_ajax = this.$.last_build_report;
+        last_build_report_ajax.params = {name: this.name};       
+        last_build_report_ajax.generateRequest();
+                
         setTimeout(this.cycle, 3000);  
+      },
+      handleLastBuildReportResponse: function(e) {  
+        var report = e.detail.response;
+        this.report = report; 
+        if(report.executor !== null){
+          console.log(report.executor);
+        }
+        if(report.culprits !== null && report.culprits.length > 0){
+          this.culprit = report.culprits[0].fullName;
+          var date = new Date(report.timestamp);
+          this.lastBuildDate = date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' +
+          date.getHours().toString() + ':' + date.getMinutes().toString().substr(-2);
+        }
+        
       }
     });
   </script>

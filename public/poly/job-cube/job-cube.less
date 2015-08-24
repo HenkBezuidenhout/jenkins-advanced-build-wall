@@ -11,6 +11,8 @@ job-cube {
   -moz-perspective: 1000px;
   -o-perspective: 1000px;
   perspective: 1000px;  
+  
+  perspective-origin: 50% 50%;
 }
 
 #cube {
@@ -44,6 +46,10 @@ job-cube {
     &[status^='aborted'] .face {
       background-color: @status-aborted;
     }
+    
+    &[status$='anime'] .face {
+      background-color: @status-building;
+    }
       
   .face {
     overflow: hidden;
@@ -60,6 +66,7 @@ job-cube {
     -o-backface-visibility: hidden;
     backface-visibility: hidden;
     background-color: @status-disabled;    
+    z-index: 100;
   }
   
   .big-name {
@@ -67,9 +74,13 @@ job-cube {
   }
   
   .name {
-    font-size: 8pt;
     position: absolute;
-    bottom: 1px;
+    bottom: 4px;
+  }
+  
+  .timestamp {    
+    position: absolute;
+    bottom: 4px;
   }
   
   .build-number {
@@ -78,6 +89,11 @@ job-cube {
     bottom: 1px;
     right: 4px;
     opacity: 0.5;
+  }
+  
+  .build-progress {    
+    font-size: @font-size * 3;
+    text-align: center;
   }
     
   .front  {
@@ -159,4 +175,19 @@ job-cube {
     -o-transform: translateZ( @tile-size / -2 ) rotateX(   90deg );
     transform: translateZ( @tile-size / -2 ) rotateX(   90deg );
   }
+  
+  @keyframes rotate {
+    from {
+      transform: translateZ( @tile-size / -2 ) rotateX(0deg) rotateY(0deg) rotateZ(0deg);;
+    }
+  
+    to {
+      transform: translateZ( @tile-size / -2 ) rotateX(360deg) rotateY(360deg) rotateZ(360deg);
+    }
+  }
+  
+  &[show='spin'] {
+    animation: rotate 20s infinite linear;
+  }
+  
 }
