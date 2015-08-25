@@ -18,8 +18,8 @@
     "tests"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#1.0.0",
     "bootstrap": "~3.3.5",
-    "iron-ajax": "PolymerElements/iron-ajax#~1.0.4"
+    "iron-ajax": "PolymerElements/iron-ajax#~1.0.4",
+    "polymer": "Polymer/polymer#1.0.0"
   }
 }
