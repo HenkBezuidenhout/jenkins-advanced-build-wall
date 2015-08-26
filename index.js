@@ -18,6 +18,7 @@ _express.use(LESS_MIDDLEWARE(__dirname + '/public', {
 	force: true,
 	debug: true
 }));
+
 _express.use(EXPRESS.static(__dirname + '/public'));
 _express.use('/bower_components',  EXPRESS.static(__dirname + '/bower_components'));
 

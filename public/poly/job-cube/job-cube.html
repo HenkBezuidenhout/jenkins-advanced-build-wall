@@ -6,41 +6,54 @@
   <template>
     <div id='cube' status$='{{status}}' show$='{{show}}'>
       <div class='face front'>
-        <div class='big-name'>[[info.displayName]]</div>
+        <div class='bigger'>[[info.displayName]]</div>
         <div>          
           <template is="dom-repeat" items$="[[info.healthReport]]">
               <span>[[item.description]]</span>
           </template>
         </div>
-        <div class='build-number'>
+        <div class='bigger build-number'>
           <span>#</span>
           <span>[[info.lastBuild.number]]</span>                   
         </div>
-        <div class='timestamp'>[[lastBuildDate]]</div>
+        <div class='align-bottom'>[[lastBuildDate]]</div>
       </div>
       <div class='face back'>
-        <div class='name'>[[info.displayName]]</div>
-        Back
+        <div class='align-bottom'>[[info.displayName]]</div>
+        <div class='smaller'>Calculated Technical Debt</div>
+        <div class='bigger'>3 hours</div>
+        <div class='smaller'>Potential Issues</div>
+        <div class='bigger'>133,000</div>
+        <div class='smaller'>SQALE Rating</div>
+        <div class='bigger'>B</div>
       </div>
       <div class='face left'>
-        <div class='name'>[[info.displayName]]</div>
+        <div class='align-bottom'>[[info.displayName]]</div>
         Left
       </div>
       <div class='face right'>        
-        <div class='big-name'>Building</div>
-        <div class='name'>[[info.displayName]]</div>
+        <div class='bigger'>Building</div>
+        <div class='align-bottom'>[[info.displayName]]</div>
         <div class='build-progress'>
           <span>[[report.executor.progress]]</span>    
           <span>%</span>
         </div>        
       </div>
       <div class='face top'>
-        <div class='name'>[[info.displayName]]</div>
+        <div class='smaller'>Unit Tests</div>
+        <div class='bigger'>123 Passed</div>
+        <div class='bigger'>3 Failed</div>
+        <div class='bigger'>0 Skipped</div>
+        <div class='smaller'>Code Coverage</div>
+        <div class='bigger'>87%</div>
+        <div class='align-bottom'>[[info.displayName]]</div>
       </div>
       <div class='face bottom'>
-        <div>Last commit from:</div>
-        <div class='big-name'>[[culprit]]</div>
-        <div class='name'>[[info.displayName]]</div>
+        <div class='smaller'>Last commit from</div>
+        <div class='bigger'>[[culprit]]</div>
+        <div class='smaller'>Total contributers</div>
+        <div class='bigger'>4</div>
+        <div class='align-bottom'>[[info.displayName]]</div>
       </div>
     </div>
     <iron-ajax id='job_info'       
@@ -120,7 +133,7 @@
         this.cycle = function(){
           var newShow = 'front';
           if(that.report.building){
-            newShow = 'spin';
+            newShow = 'right';
           } else {
             switch(that.show){
               case "front":              
@@ -129,16 +142,19 @@
                 }
               break;
               case "bottom":
-                newShow = 'front';
+                newShow = 'back';
+              break;
+              case "back":
+                newShow = 'top';
               break;
               case "top":
-                newShow = 'left';
+                newShow = 'front';                
               break;            
               case "left":
-                newShow = 'right';
+                newShow = 'back';
               break;            
               case "right":
-                newShow = 'front';
+                newShow = 'back';
               break;
             }
           }

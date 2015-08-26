@@ -14,12 +14,14 @@
       on-response="handleAllJobsResponse" 
       debounce-duration="300">
     </iron-ajax>
-    <template is="dom-repeat" items$="[[jobs]]">
-        <job-cube 
-          name$='{{item.name}}' 
-          status$='{{item.color}}'>
-        </job-cube>
-    </template>
+    <div class='board'>
+      <template is="dom-repeat" items$="[[jobs]]">
+          <job-cube 
+            name$='{{item.name}}' 
+            status$='{{item.color}}'>
+          </job-cube>
+      </template>
+    </div>
   </template>
 
   <script>
