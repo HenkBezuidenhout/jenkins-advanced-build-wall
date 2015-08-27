@@ -6,68 +6,55 @@
   <template>
     <div id='cube' status$='{{status}}' show$='{{show}}'>
       <div class='face front'>
-        <div class='bigger'>[[info.displayName]]</div>
-        <div>          
-          <template is="dom-repeat" items$="[[info.healthReport]]">
-              <span>[[item.description]]</span>
-          </template>
-        </div>
-        <div class='bigger build-number'>
-          <span>#</span>
-          <span>[[info.lastBuild.number]]</span>                   
-        </div>
+        <div class='bigger'>[[info.name]]</div>
+        <div style='font-size: xx-large'>[[info.build.result]]</div>
+        <div class='bigger build-number'>[[info.build.name]]</div>
+        <template is="dom-repeat" items$="[[info.healthReport]]">
+          <div class='smaller'>[[item.description]]</div>
+        </template>
         <div class='align-bottom'>[[lastBuildDate]]</div>
       </div>
+      <div id="bottom" class='face bottom'>
+        <div class='smaller'>[[LastContributionHeading(culprit)]]</div>
+        <template is="dom-repeat" items$="[[info.build.culprits]]">
+          <div class='bigger'>[[item.fullName]]</div>
+        </template>
+        <div class='align-bottom'>[[info.name]]</div>
+      </div>
       <div class='face back'>
-        <div class='align-bottom'>[[info.displayName]]</div>
+        <div class='align-bottom'>[[info.name]]</div>
         <div class='smaller'>Calculated Technical Debt</div>
-        <div class='bigger'>3 hours</div>
-        <div class='smaller'>Potential Issues</div>
-        <div class='bigger'>133,000</div>
+        <div class='bigger'>[[info.sonarqube.sqale_index]]</div>
+        <div class='smaller'>Debt to Rewrite Ratio</div>
+        <div class='bigger'>[[info.sonarqube.sqale_debt_ratio]]</div>
         <div class='smaller'>SQALE Rating</div>
-        <div class='bigger'>B</div>
+        <div class='bigger'>[[info.sonarqube.sqale_rating]]</div>
       </div>
       <div class='face left'>
-        <div class='align-bottom'>[[info.displayName]]</div>
+        <div class='align-bottom'>[[info.name]]</div>
         Left
       </div>
-      <div class='face right'>        
+      <div class='face right'>
         <div class='bigger'>Building</div>
-        <div class='align-bottom'>[[info.displayName]]</div>
+        <div class='align-bottom'>[[info.name]]</div>
         <div class='build-progress'>
-          <span>[[report.executor.progress]]</span>    
+          <span>[[info.build.progress]]</span>
           <span>%</span>
-        </div>        
+        </div>
       </div>
       <div class='face top'>
-        <div class='smaller'>Unit Tests</div>
-        <div class='bigger'>123 Passed</div>
-        <div class='bigger'>3 Failed</div>
-        <div class='bigger'>0 Skipped</div>
-        <div class='smaller'>Code Coverage</div>
-        <div class='bigger'>87%</div>
-        <div class='align-bottom'>[[info.displayName]]</div>
-      </div>
-      <div class='face bottom'>
-        <div class='smaller'>Last commit from</div>
-        <div class='bigger'>[[culprit]]</div>
-        <div> 4 hours ago</div>
-        <div class='smaller'>Total contributers</div>
-        <div class='bigger'>4</div>
-        <div class='align-bottom'>[[info.displayName]]</div>
+        <div class='smaller'>Software Tests</div>
+        <div class='bigger'><span>[[info.tests.totalCount]]</span> Total</div>
+        <div class='bigger'><span>[[info.tests.failCount]]</span> Failed</div>
+        <div class='bigger'><span>[[info.tests.skipCount]]</span> Skipped</div>
+
+        <div class='smaller'>[[IsCodeCovered(info.sonarqube)]]</div>
+        <div class='bigger'>[[info.sonarqube.coverage]]</div>
+
+        <div class='align-bottom'>[[info.name]]</div>
       </div>
     </div>
-    <iron-ajax id='job_info'       
-      url='/job_info' 
-      handle-as="json" 
-      on-response="handleJobInfoResponse" 
-      debounce-duration="300">
-    </iron-ajax>
-    <iron-ajax id='last_build_report'       
-      url='/last_build_report' 
-      handle-as="json" 
-      on-response="handleLastBuildReportResponse" 
-      debounce-duration="300">
+    <iron-ajax id='api_details_ajax' url='/api/details' handle-as="json" on-response="handleDetailsResponse" debounce-duration="300">
     </iron-ajax>
   </template>
 
@@ -113,6 +100,20 @@
         culprit: String,
         lastBuildDate: Date      
       },
+      LastContributionHeading: function(){
+        if(this.info.build.result !== 'SUCCESS'){
+          return "Possible Culprits";
+        } else {
+          return "Contributers";
+        }     
+      },
+      IsCodeCovered: function(){
+        if(this.info.sonarqube && this.info.sonarqube.coverage){
+          return "Code Coverage";
+        } else {
+          return "";
+        }        
+      },
       buildHealth: function(){
         var i;
         if(this.info !== null){
@@ -128,68 +129,78 @@
       oldBuildNumber: '0',
       ready: function(){
         var that = this;
+        var api_details_ajax = that.$.api_details_ajax;
+        api_details_ajax.params = {name: that.name};
         
         this.cycle = function(){
           var newShow = 'front';
-          if(that.report.building){
-            newShow = 'right';
-          } else {
-            switch(that.show){
-              case "front":              
-                if(that.report.culprits && that.report.culprits.length > 0) {
-                  newShow = 'bottom';                  
-                }
-              break;
-              case "bottom":
-                newShow = 'back';
-              break;
-              case "back":
-                newShow = 'top';
-              break;
-              case "top":
-                newShow = 'front';                
-              break;            
-              case "left":
-                newShow = 'back';
-              break;            
-              case "right":
-                newShow = 'back';
-              break;
+          if(that.info){            
+            if(that.info.build && that.info.build.busy){
+              newShow = 'right';
+            } else {
+              switch(that.show){
+                case "front":              
+                  if(that.info.build && that.info.build.culprits && that.info.build.culprits.length > 0) {
+                    newShow = 'bottom';      
+                    break;            
+                  } 
+                case "bottom":
+                  if(that.info.sonarqube){
+                    newShow = 'back';
+                    break;
+                  }
+                case "back":
+                  if(that.info.tests){
+                    newShow = 'top';
+                    break;
+                  }
+                case "top":
+                  newShow = 'front';                
+                break;            
+                case "left":
+                  newShow = 'back';
+                break;            
+                case "right":
+                  newShow = 'back';
+                break;
+              }
             }
           }
           that.show = newShow;
         
-          var job_info_ajax = that.$.job_info;
-          job_info_ajax.params = {name: that.name};
-          job_info_ajax.generateRequest();        
-        
-          var last_build_report_ajax = that.$.last_build_report;
-          last_build_report_ajax.params = {name: that.name};  
-          last_build_report_ajax.generateRequest();        
+          api_details_ajax.generateRequest();
         };
-        this.cycle();
-       setInterval(this.cycle, 10000 + (Math.random() * 1000));
+        api_details_ajax.generateRequest();
+        setInterval(this.cycle, 5000 + (Math.random() * 1000));
       },
       _observeStatusChange: function(newStatus, oldStatus){
         if(this.cycle !== null)        
           this.cycle();
       },
       // Functions
-      handleJobInfoResponse: function(e) {        
+      handleDetailsResponse: function(e) {        
         this.info = e.detail.response;  
-      },
-      handleLastBuildReportResponse: function(e) {  
-        var report = e.detail.response;
-        this.report = report; 
-        if(report.executor !== null){
-          console.log(report.executor);
+        this.status = this.info.status;
+        if(this.info.build && this.info.build.culprits && this.info.build.culprits.length > 0) {
+          this.culprit = this.info.build.culprits[0].fullName;
         }
-        if(report.culprits !== null && report.culprits.length > 0){
-          this.culprit = report.culprits[0].fullName;
+        if(this.info.build){
+          var date = new Date(this.info.build.timestamp);
+          this.lastBuildDate = date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' +
+          date.getHours().toString() + ':' + date.getMinutes().toString().substr(-2);        
         }
-        var date = new Date(report.timestamp);
-        this.lastBuildDate = date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' +
-        date.getHours().toString() + ':' + date.getMinutes().toString().substr(-2);        
+        if(this.info.scm){
+          var bottom = $(this.$.bottom);
+          var scm = this.info.scm;
+          
+          if(scm.indexOf('GitSCM') >= 0){
+            bottom.removeClass( "scm-tfs" );
+            bottom.addClass( "scm-git" );
+          } else if (scm.indexOf('TeamFoundationServerScm') >= 0){
+            bottom.removeClass( "scm-git" );            
+            bottom.addClass( "scm-tfs" );
+          }
+        }
       }
     });
   </script>

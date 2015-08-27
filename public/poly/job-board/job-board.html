@@ -9,16 +9,14 @@
   <template>
     <iron-ajax id='all_jobs_ajax' 
       auto
-      url='/all_jobs' 
+      url='/api/list' 
       handle-as="json" 
       on-response="handleAllJobsResponse" 
       debounce-duration="300">
     </iron-ajax>
     <div class='board'>
       <template is="dom-repeat" items$="[[jobs]]">
-          <job-cube 
-            name$='{{item.name}}' 
-            status$='{{item.color}}'>
+          <job-cube name$='{{item}}'>
           </job-cube>
       </template>
     </div>
@@ -39,28 +37,28 @@
       
       handleAllJobsResponse: function(e) {
         var i;
-        var newJobs = e.detail.response;
-        for (i = 0; i < newJobs.length; ++i) {
-          var j = newJobs[i];
-          var cube = $(this).children("job-cube[name='" + j.name + "']");
-          if(cube.length > 0){
-            cube = cube[0];
-            cube.status = j.color;
-            cube.url = j.url;
-          } else {
-            this.jobs = newJobs;
-            break;
-          }
-        }    
+        this.jobs = e.detail.response;
+        // for (i = 0; i < newJobs.length; ++i) {
+        //   var j = newJobs[i];
+        //   var cube = $(this).children("job-cube[name='" + j + "']");
+        //   if(cube.length > 0){
+        //     cube = cube[0];
+        //     cube.status = j.color;
+        //     cube.url = j.url;
+        //   } else {
+        //     this.jobs = newJobs;
+        //     break;
+        //   }
+        // }    
       },
       
       // Functions      
       ready: function(){
         var that = this;
+        that.$.all_jobs_ajax.generateRequest();
+        
         setInterval(function(){
           that.$.all_jobs_ajax.generateRequest();
-          
-          
         }, 10000);
       }
       

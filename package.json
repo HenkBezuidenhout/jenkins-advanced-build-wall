@@ -16,6 +16,7 @@
     "express": "^4.13.3",
     "jenkins-api": "^0.2.8",
     "less": "^2.5.1",
-    "less-middleware": "^2.0.1"
+    "less-middleware": "^2.0.1",
+    "node-rest-client": "^1.5.1"
   }
 }

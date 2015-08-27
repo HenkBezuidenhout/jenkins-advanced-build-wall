@@ -8,14 +8,6 @@ job-cube {
   margin: @margin;
 }
 
-.bigger {
-  font-size: large;
-}
-
-.smaller {
-  font-size: smaller;
-}
-
 .align-bottom {
   position: absolute;
   bottom: 4px;
@@ -35,7 +27,7 @@ job-cube {
   -moz-transition: -moz-transform 1s;
   -o-transition: -o-transform 1s;
   transition: transform 1s translate 1s background-color 0.5s;
-  
+   
   transition-timing-function: ease-out;
   
     &[status^='blue'] .face {
@@ -107,12 +99,14 @@ job-cube {
     -moz-transform: rotateX( -180deg ) translateZ( @tile-size / 2 );
     -o-transform: rotateX( -180deg ) translateZ( @tile-size / 2 );
     transform: rotateX( -180deg ) translateZ( @tile-size / 2 );
-    background-image: url('http://www.sonarqube.org/wp-content/uploads/2014/03/inspected-with-SQ-64.jpg');  
+    
+    background-image: url('/img/sonarqube.jpg');  
     background-position: bottom;
     background-repeat: no-repeat;
     background-size: @tile-size;
+    
     .align-bottom {
-      bottom: 58px;
+      bottom: @font-size * 4;
       right: 4px;
     }  
   }
@@ -138,13 +132,24 @@ job-cube {
     -webkit-transform: rotateX(  -90deg ) translateZ( @tile-size / 2 );
     -moz-transform: rotateX(  -90deg ) translateZ( @tile-size / 2 );
     -o-transform: rotateX(  -90deg ) translateZ( @tile-size / 2 );
-    transform: rotateX(  -90deg ) translateZ( @tile-size / 2 );    
+    transform: rotateX(  -90deg ) translateZ( @tile-size / 2 );        
+  
+    &.scm-git {
+      background-image: url('/img/scm-git.png');  
+      background-position: bottom right;
+      background-repeat: no-repeat;
+      background-origin: 4px 4px;
+      background-size: 48px;    
+    }
     
-    background-image: url('https://git-scm.com/images/logos/downloads/Git-Logo-White.png');  
-    background-position: bottom right;
-    background-repeat: no-repeat;
-    background-size: 48px;
+    &.scm-tfs {
+      background-image: url('/img/scm-tfs.png');  
+      background-position: bottom right;
+      background-repeat: no-repeat;
+      background-size: 48px;       
+    }
   }
+  
   
   &[show='front'] {
     -webkit-transform: translateZ( @tile-size / -2 );
