@@ -195,7 +195,7 @@ job-cube {
     z-index: -100;
     
     .left {
-      opacity: 1.0 !important;
+      opacity: 0.0 !important;
     }
   }
   
@@ -220,6 +220,18 @@ job-cube {
     
     .bottom {
       opacity: 1.0 !important;
+    }
+  }
+  
+  &[show='none'] {
+    -webkit-transform: translateZ( @tile-size / -2 ) rotateZ(  -90deg );
+    -moz-transform: translateZ( @tile-size / -2 ) rotateZ(  -90deg );
+    -o-transform: translateZ( @tile-size / -2 ) rotateZ(  -90deg );
+    transform: translateZ( @tile-size / -2 ) rotateZ(  -90deg );
+    z-index: -100;
+    
+    .front {
+      opacity: 0.0 !important;
     }
   }
   

@@ -9,15 +9,15 @@
         <div class='bigger'>[[info.name]]</div>
         <div style='font-size: xx-large'>[[info.build.result]]</div>
         <div class='bigger build-number'>[[info.build.name]]</div>
-        <template is="dom-repeat" items$="[[info.healthReport]]">
-          <div class='smaller'>[[item.description]]</div>
+        <template is="dom-repeat" items$="[[info.reports]]">
+          <div class='smaller'>[[item]]</div>
         </template>
         <div class='align-bottom'>[[lastBuildDate]]</div>
       </div>
       <div id="bottom" class='face bottom'>
-        <div class='smaller'>[[LastContributionHeading(culprit)]]</div>
+        <div class='smaller'>Contributers</div>
         <template is="dom-repeat" items$="[[info.build.culprits]]">
-          <div class='bigger'>[[item.fullName]]</div>
+          <div class='bigger'>[[item]]</div>
         </template>
         <div class='align-bottom'>[[info.name]]</div>
       </div>
@@ -31,8 +31,6 @@
         <div class='bigger'>[[info.sonarqube.sqale_rating]]</div>
       </div>
       <div class='face left'>
-        <div class='align-bottom'>[[info.name]]</div>
-        Left
       </div>
       <div class='face right'>
         <div class='bigger'>Building</div>
@@ -78,12 +76,21 @@
         name: {
           type: String,
           value:  'hi!',        
-          reflectToAttribute: true  
+          reflectToAttribute: true,  
+          notify: true,          
+          observer: '_observeNameChange'
+        },
+        loading: {
+          type: String,
+          value:  'false',
+          reflectToAttribute: true,  
+          notify: true,          
+          observer: '_observeLoadingChange'
         },
         url: {
           type: String,
           value:  '',        
-          reflectToAttribute: true  
+          reflectToAttribute: true
         },
         info: {
           type: Object,
@@ -101,7 +108,7 @@
         lastBuildDate: Date      
       },
       LastContributionHeading: function(){
-        if(this.info.build.result !== 'SUCCESS'){
+        if(this.status !== 'SUCCESS'){
           return "Possible Culprits";
         } else {
           return "Contributers";
@@ -125,12 +132,34 @@
           return healthReport.description;
         }
       },
+      timer: null,
       cycle: null,
       oldBuildNumber: '0',
+      _observeNameChange: function(newName, oldName){
+        if(this.timer){
+          clearInterval(this.timer);
+          this.timer = null;
+        }
+        var that = this;
+        if(oldName){
+           this.show = 'front';
+        }
+        setTimeout(function(){
+          
+          that.show = 'left';
+          if(!newName){
+            return;
+          }
+          var api_details_ajax = that.$.api_details_ajax;
+          api_details_ajax.params = {name: newName};
+          setTimeout(function(){
+              that.cycle();            
+              that.timer = setInterval(that.cycle, 7000);            
+            }, 1000);          
+        }, 1000);
+      },
       ready: function(){
         var that = this;
-        var api_details_ajax = that.$.api_details_ajax;
-        api_details_ajax.params = {name: that.name};
         
         this.cycle = function(){
           var newShow = 'front';
@@ -140,7 +169,7 @@
             } else {
               switch(that.show){
                 case "front":              
-                  if(that.info.build && that.info.build.culprits && that.info.build.culprits.length > 0) {
+                  if(that.info.build && (that.info.build.culprits.length > 0)) {
                     newShow = 'bottom';      
                     break;            
                   } 
@@ -158,7 +187,7 @@
                   newShow = 'front';                
                 break;            
                 case "left":
-                  newShow = 'back';
+                  newShow = 'front';
                 break;            
                 case "right":
                   newShow = 'back';
@@ -167,40 +196,55 @@
             }
           }
           that.show = newShow;
-        
+          var api_details_ajax = that.$.api_details_ajax;
           api_details_ajax.generateRequest();
         };
-        api_details_ajax.generateRequest();
-        setInterval(this.cycle, 5000 + (Math.random() * 1000));
+        
       },
       _observeStatusChange: function(newStatus, oldStatus){
         if(this.cycle !== null)        
           this.cycle();
       },
+      _observeLoadingChange: function(newLoading, oldLoading){
+        if(newLoading !== oldLoading){
+          if(newLoading === 'true'){
+            this.show = 'none';
+          }
+        }
+      },
       // Functions
-      handleDetailsResponse: function(e) {        
-        this.info = e.detail.response;  
-        this.status = this.info.status;
-        if(this.info.build && this.info.build.culprits && this.info.build.culprits.length > 0) {
-          this.culprit = this.info.build.culprits[0].fullName;
+      handleDetailsResponse: function(e) {            
+        var _info = e.detail.response;
+        
+        if(!_info.build) {
+          _info.build = {};
         }
-        if(this.info.build){
-          var date = new Date(this.info.build.timestamp);
-          this.lastBuildDate = date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' +
-          date.getHours().toString() + ':' + date.getMinutes().toString().substr(-2);        
-        }
-        if(this.info.scm){
-          var bottom = $(this.$.bottom);
-          var scm = this.info.scm;
-          
-          if(scm.indexOf('GitSCM') >= 0){
+        
+        if(_info.status === "disabled"){
+          _info.build.result = "DISABLED";
+        } else if(!_info.status){
+          _info.status = "LOADING";          
+        }                    
+         
+        if(_info.scm){
+          var bottom = $(this.$.bottom);          
+          if(_info.scm.indexOf('GitSCM') >= 0){
             bottom.removeClass( "scm-tfs" );
             bottom.addClass( "scm-git" );
-          } else if (scm.indexOf('TeamFoundationServerScm') >= 0){
+          } else if (_info.scm.indexOf('TeamFoundationServerScm') >= 0){
             bottom.removeClass( "scm-git" );            
             bottom.addClass( "scm-tfs" );
           }
         }
+        
+        if(_info.build.timestamp) {
+          var date = new Date(_info.build.timestamp);
+          this.lastBuildDate = date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' +
+          date.getHours().toString() + ':' + ((date.getMinutes().toString().length === 1) ? "0" +date.getMinutes().toString() : date.getMinutes().toString());        
+        }
+        
+        this.status = _info.status;    
+        this.info = _info; 
       }
     });
   </script>

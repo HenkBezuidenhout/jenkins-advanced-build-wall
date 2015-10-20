@@ -3,21 +3,16 @@
 <link rel="import" href="/poly/job-cube/job-cube.html">
 
 <dom-module id="job-board">
-  
+
   <link rel='stylesheet' href='job-board.css'>
 
   <template>
-    <iron-ajax id='all_jobs_ajax' 
-      auto
-      url='/api/list' 
-      handle-as="json" 
-      on-response="handleAllJobsResponse" 
-      debounce-duration="300">
+    <iron-ajax id='all_jobs_ajax' auto url='/api/list' handle-as="json" on-response="handleAllJobsResponse" debounce-duration="300">
     </iron-ajax>
     <div class='board'>
       <template is="dom-repeat" items$="[[jobs]]">
-          <job-cube name$='{{item}}'>
-          </job-cube>
+        <job-cube name$='[[item]]'>
+        </job-cube>
       </template>
     </div>
   </template>
@@ -31,35 +26,84 @@
         jobs: {
           type: Array,      
           value: [],
-          reflectToAttribute: true
+          notify: true         
+        },
+        displayOffset: {
+          type: Number,
+          value: 0          
+        },
+        displayCount: {
+          type: Number,
+          value: 12
         }
       },
       
-      handleAllJobsResponse: function(e) {
-        var i;
-        this.jobs = e.detail.response;
-        // for (i = 0; i < newJobs.length; ++i) {
-        //   var j = newJobs[i];
-        //   var cube = $(this).children("job-cube[name='" + j + "']");
-        //   if(cube.length > 0){
-        //     cube = cube[0];
-        //     cube.status = j.color;
-        //     cube.url = j.url;
-        //   } else {
-        //     this.jobs = newJobs;
-        //     break;
-        //   }
-        // }    
+      handleAllJobsResponse: function(e) {        
+        var newjobs = e.detail.response;
+        if(this.displayOffset > newjobs.length){
+          this.displayOffset = 0;
+        }
+        if(!this.jobs){
+          this.jobs = newjobs;
+          this.$.all_jobs_ajax.generateRequest();
+        }
+        
+        var that = this;
+        
+        var i = 0;        
+        var timer = setInterval(function(){
+          if(i < that.displayCount){
+            var cloned = that.jobs.slice(0); 
+            cloned[i] = newjobs[i + that.displayOffset];
+            that.set("jobs", cloned);
+          } else {
+            clearInterval(timer);
+            that.displayOffset += that.displayCount;
+          }
+          i += 1;
+        }, 250);
+        
+        /*
+        var jobArray = new Array();
+        if(this.displayOffset > _jobs.length){
+          this.displayOffset = 0;
+        }
+        
+        for(var i = this.displayOffset ; (_jobs.length > i && this.displayCount > i ); i++){
+          jobArray[i] = { 
+            name: _jobs[i],
+            loading: "true"
+          };
+        };
+        
+        this.jobs = jobArray;
+        
+        var that = this;
+        setTimeout(function() {     
+          that.jobs = [];
+          jobArray = new Array();      
+          for(var i = _jobs.length ; (_jobs.length > i && that.displayCount > i ); i++){
+            jobArray[i] = { 
+              name: _jobs[i],
+              loading: "false"
+            };
+          };
+          that.jobs = jobArray;
+        }, 1000);
+        
+        this.displayOffset += this.displayCount;*/
       },
-      
+      _observeJobsChange: function(oldJobs, newJobs){
+        
+      },
       // Functions      
       ready: function(){
         var that = this;
         that.$.all_jobs_ajax.generateRequest();
         
-        setInterval(function(){
-          that.$.all_jobs_ajax.generateRequest();
-        }, 10000);
+         setInterval(function() {
+           that.$.all_jobs_ajax.generateRequest();
+         }, 35000);
       }
       
     });
