@@ -16,7 +16,8 @@
       </template>
     </div>
   </template>
-
+  
+  <script src="../../../bower_components/underscore/underscore.js"></script> 
   <script>
     Polymer({
       is: 'job-board',
@@ -39,10 +40,13 @@
       },
       
       handleAllJobsResponse: function(e) {        
-        var newjobs = e.detail.response;
-        if(this.displayOffset > newjobs.length){
-          this.displayOffset = 0;
-        }
+        var sortedjobs = _.sortBy(e.detail.response, function(item){
+          return -item.timestamp;
+          
+        });
+        console.log(sortedjobs);
+        var newjobs = _.pluck(sortedjobs, "name");
+        
         if(!this.jobs){
           this.jobs = newjobs;
           this.$.all_jobs_ajax.generateRequest();
@@ -54,7 +58,10 @@
         var timer = setInterval(function(){
           if(i < that.displayCount){
             var cloned = that.jobs.slice(0); 
-            cloned[i] = newjobs[i + that.displayOffset];
+            var offset = i + that.displayOffset;
+            offset = offset % newjobs.length;
+            
+            cloned[i] = newjobs[offset];
             that.set("jobs", cloned);
           } else {
             clearInterval(timer);

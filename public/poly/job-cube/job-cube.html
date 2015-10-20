@@ -7,16 +7,19 @@
     <div id='cube' status$='{{status}}' show$='{{show}}'>
       <div class='face front'>
         <div class='bigger'>[[info.name]]</div>
-        <div style='font-size: xx-large'>[[info.build.result]]</div>
-        <div class='bigger build-number'>[[info.build.name]]</div>
+        <div style='font-size: xx-large'>[[info.result]]</div>
+        <div class='bigger build-number'>[[info.build_number]]</div>
         <template is="dom-repeat" items$="[[info.reports]]">
           <div class='smaller'>[[item]]</div>
         </template>
-        <div class='align-bottom'>[[lastBuildDate]]</div>
+        <div class='align-bottom'>
+          <div>[[lastBuildDate]]</div>
+          <div>[[howLongAgo]]</div>
+        </div>
       </div>
       <div id="bottom" class='face bottom'>
         <div class='smaller'>Contributers</div>
-        <template is="dom-repeat" items$="[[info.build.culprits]]">
+        <template is="dom-repeat" items$="[[info.culprits]]">
           <div class='bigger'>[[item]]</div>
         </template>
         <div class='align-bottom'>[[info.name]]</div>
@@ -36,7 +39,7 @@
         <div class='bigger'>Building</div>
         <div class='align-bottom'>[[info.name]]</div>
         <div class='build-progress'>
-          <span>[[info.build.progress]]</span>
+          <span>[[info.progress]]</span>
           <span>%</span>
         </div>
       </div>
@@ -56,6 +59,7 @@
     </iron-ajax>
   </template>
 
+  <script src="../../../bower_components/moment/moment.js"></script>
   <script>
     Polymer({
       is: 'job-cube',
@@ -64,14 +68,14 @@
       properties: {
         status: {
           type: String,      
-          value: 'red',
+          value: '',
           reflectToAttribute: true,
           notify: true,          
           observer: '_observeStatusChange'
         },
         show: {
           type: String,   
-          value: 'front'
+          value: 'left'
         },
         name: {
           type: String,
@@ -141,21 +145,19 @@
           this.timer = null;
         }
         var that = this;
-        if(oldName){
-           this.show = 'front';
-        }
-        setTimeout(function(){
-          
-          that.show = 'left';
+        that.show = 'left';
+        setTimeout(function(){          
           if(!newName){
             return;
           }
+          that.show = 'front'; 
           var api_details_ajax = that.$.api_details_ajax;
           api_details_ajax.params = {name: newName};
+          api_details_ajax.generateRequest();
           setTimeout(function(){
-              that.cycle();            
-              that.timer = setInterval(that.cycle, 7000);            
-            }, 1000);          
+            that.show = 'front';       
+          }, 1000);
+          that.timer = setInterval(that.cycle, 7000);
         }, 1000);
       },
       ready: function(){
@@ -164,12 +166,12 @@
         this.cycle = function(){
           var newShow = 'front';
           if(that.info){            
-            if(that.info.build && that.info.build.busy){
+            if(that.info.busy){
               newShow = 'right';
             } else {
               switch(that.show){
                 case "front":              
-                  if(that.info.build && (that.info.build.culprits.length > 0)) {
+                  if(that.info.culprits && that.info.culprits.length > 0) {
                     newShow = 'bottom';      
                     break;            
                   } 
@@ -215,15 +217,11 @@
       // Functions
       handleDetailsResponse: function(e) {            
         var _info = e.detail.response;
-        
-        if(!_info.build) {
-          _info.build = {};
-        }
-        
+                
         if(_info.status === "disabled"){
-          _info.build.result = "DISABLED";
+          _info.result = "DISABLED";
         } else if(!_info.status){
-          _info.status = "LOADING";          
+          _info.result = "LOADING";          
         }                    
          
         if(_info.scm){
@@ -237,10 +235,11 @@
           }
         }
         
-        if(_info.build.timestamp) {
-          var date = new Date(_info.build.timestamp);
-          this.lastBuildDate = date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' +
-          date.getHours().toString() + ':' + ((date.getMinutes().toString().length === 1) ? "0" +date.getMinutes().toString() : date.getMinutes().toString());        
+        if(_info.timestamp) {
+          var date = new Date(_info.timestamp);
+          this.lastBuildDate = moment(date).format('D MMM YYYY HH:mm');
+          this.howLongAgo = moment(date).fromNow();
+           //date.getDay() + '/' + date.getMonth() + '/' + date.getFullYear() + ' ' +   date.getHours().toString() + ':' + ((date.getMinutes().toString().length === 1) ? "0" +date.getMinutes().toString() : date.getMinutes().toString());        
         }
         
         this.status = _info.status;    

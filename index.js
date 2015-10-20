@@ -51,15 +51,14 @@ _express.get('/api/list', function (req, res) {
 			var obj = DataCache[job_name];
 			if (!obj) {
 				obj = {
-					status: item.color
+					status: item.color,
+					name: item.name
 				};
 				DataCache[job_name] = obj;
 			}
 		});
-
-		var dataObjects = _.pluck(data.jobs, "name");
-
-		res.json(dataObjects);
+		
+		res.json(DataCache);
 	}).on('error', function (err) {
 		console.log(err);
 	});
@@ -90,20 +89,18 @@ _express.get('/api/details', function (req, res) {
 
 	_jenkins.Build({ path: { resource: job_name } },
 		function (data) {
-			obj.build = {
-				busy: data.building,
-				name: data.displayName,
-				progress: (data.building) ? data.executor.progress : 100,
-				result: data.result,
-				timestamp: data.timestamp
-			};
-			obj.build.culprits = _.pluck(data.culprits, "fullName");
-			if (obj.build.culprits.length === 0) {
-				obj.build.culprits = _.chain(data.actions)
+			obj.busy = data.building;
+			obj.build_number = data.displayName;
+			obj.progress = (data.building) ? data.executor.progress : 100;
+			obj.result = data.result;
+			obj.timestamp = data.timestamp;
+			
+			obj.culprits = _.pluck(data.culprits, "fullName");
+			if (obj.culprits.length === 0) {
+				obj.culprits = _.chain(data.actions)
 					.pluck("causes")
 					.flatten()
 					.compact().pluck("userName").compact().value();
-
 			}
 			
 			
