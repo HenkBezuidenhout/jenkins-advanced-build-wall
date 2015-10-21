@@ -20,7 +20,7 @@ var _jenkins = new NODE_REST_CLIENT();
 _jenkins.registerMethod("List", JenkinsUrl + '/view/${viewName}/api/json?depth=0', 'GET');
 _jenkins.registerMethod("Overview", JenkinsUrl + '/job/${resource}/api/json?depth=0', 'GET');
 _jenkins.registerMethod("Scm", JenkinsUrl + '/job/${resource}/scm/api/json?depth=0', 'GET');
-_jenkins.registerMethod("Build", JenkinsUrl + '/job/${resource}/lastBuild/api/json?depth=0', 'GET');
+_jenkins.registerMethod("Build", JenkinsUrl + '/job/${resource}/lastBuild/api/json?depth=1', 'GET');
 
 _jenkins = _jenkins.methods;
 
