@@ -8,12 +8,15 @@
       <div class='face front'>
         <div class='bigger'>[[info.name]]</div>
         <div style='font-size: xx-large'>[[info.result]]</div>
-        <div class='bigger build-number'>[[info.build_number]]</div>
+        <div class='build-number'>
+          <img src="[[info.gravatar]]" />
+          <div class='bigger'>[[info.build_number]]</div>
+        </div>
         <template is="dom-repeat" items$="[[info.reports]]">
           <div class='smaller'>[[item]]</div>
         </template>
         <div class='align-bottom'>
-          <div>[[lastBuildDate]]</div>
+          <div class='smaller'>[[lastBuildDate]]</div>
           <div>[[howLongAgo]]</div>
         </div>
       </div>

@@ -5,6 +5,7 @@ var NODE_REST_CLIENT = require('node-rest-client').Client;
 var JENKINS = require('jenkins-api');
 var QUERY_STRING = require('querystring');
 var UNDERSCORE = require('underscore');
+var CRYPTO = require('crypto');
 
 var _ = UNDERSCORE;
 
@@ -57,7 +58,7 @@ _express.get('/api/list', function (req, res) {
 				DataCache[job_name] = obj;
 			}
 		});
-		
+
 		res.json(DataCache);
 	}).on('error', function (err) {
 		console.log(err);
@@ -94,7 +95,8 @@ _express.get('/api/details', function (req, res) {
 			obj.progress = (data.building) ? data.executor.progress : 100;
 			obj.result = data.result;
 			obj.timestamp = data.timestamp;
-			
+			obj.gravatar = "http://www.gravatar.com/avatar/" + CRYPTO.createHash('md5').update(job_name).digest("hex") + "?s=72&d=identicon&r=PG";
+
 			obj.culprits = _.pluck(data.culprits, "fullName");
 			if (obj.culprits.length === 0) {
 				obj.culprits = _.chain(data.actions)
